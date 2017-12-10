@@ -26,6 +26,6 @@ Sistema que contabiliza suas atividades e tempo casto em tarefas de programaçã
 
 Nome                        | Função
 ----------------------------|---------------------------------------------
-André Luiz Pereira 	        | Backend, SQL Developer,  e gerente de Projetos 
+André Luiz Pereira 	        | senior software engineer,  e gerente de Projetos 
                     
 
