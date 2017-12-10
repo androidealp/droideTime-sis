@@ -23,8 +23,13 @@ class HelloController extends Controller
      * This command echoes what you have entered as the message.
      * @param string $message the message to be echoed.
      */
-    public function actionIndex($message = 'hello world')
+    public function actionIndex()
     {
-        echo $message . "\n";
+       
+    	//gerador de senha
+    	echo "gerando senha de usuário \n ";
+    	echo  \Yii::$app->getSecurity()->generatePasswordHash('uninove@123');
+
+
     }
 }

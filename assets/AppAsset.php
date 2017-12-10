@@ -21,8 +21,16 @@ class AppAsset extends AssetBundle
     public $baseUrl = '@web';
     public $css = [
         'css/site.css',
+        'css/select2.min.css',
+        'css/toastr.min.css',
+        'fontawesome/css/font-awesome.min.css'
     ];
     public $js = [
+        'js/eModal.min.js',
+        'js/select2.full.min.js',
+        'js/toastr.js',
+        'js/tools.js',
+        'js/modal-custom.js',
     ];
     public $depends = [
         'yii\web\YiiAsset',

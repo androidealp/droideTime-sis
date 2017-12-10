@@ -22,6 +22,7 @@ AppAsset::register($this);
     <?= Html::csrfMetaTags() ?>
     <title><?= Html::encode($this->title) ?></title>
     <?php $this->head() ?>
+    <?php $this->registerJsFile('@web/js/jquery-2.1.4.min.js', ['position' => \yii\web\View::POS_END]); ?>
 </head>
 <body>
 <?php $this->beginBody() ?>
@@ -42,17 +43,25 @@ AppAsset::register($this);
             ['label' => 'Sobre Nós', 'url' => ['/site/about']],
             ['label' => 'Contato', 'url' => ['/site/contact']],
             Yii::$app->user->isGuest ? (
-                ['label' => 'Login', 'url' => ['/site/login']]
+                ['label' => 'Login', 'url' => '#', 'linkOptions'=>[
+                    'data-btaddurl'=>\yii\helpers\Url::to(['/painel/ajax-login']),
+                    'data-formid'=>'form-login',
+                    'data-modalsize'=>'sm',
+                    'data-pajaxid'=>'false',
+                    'title'=>'Login'
+                
+                ]]
             ) : (
                 '<li>'
                 . Html::beginForm(['/site/logout'], 'post')
                 . Html::submitButton(
-                    'Logout (' . Yii::$app->user->identity->username . ')',
+                    'Logout (' . Yii::$app->user->identity->usuario . ')',
                     ['class' => 'btn btn-link logout']
                 )
                 . Html::endForm()
                 . '</li>'
-            )
+            ),
+            !Yii::$app->user->isGuest?(['label' => 'Meus Projetos', 'url' => ['/painel/projetos']]):('')
         ],
     ]);
     NavBar::end();
@@ -69,9 +78,7 @@ AppAsset::register($this);
 
 <footer class="footer">
     <div class="container">
-        <p class="pull-left">&copy; My Company <?= date('Y') ?></p>
-
-        <p class="pull-right"><?= Yii::powered() ?></p>
+        <p class="pull-left">&copy; DroideTime <?= date('Y') ?></p>
     </div>
 </footer>
 

@@ -7,6 +7,9 @@ $config = [
     'id' => 'basic',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
+    'sourceLanguage'=>'pt-BR',
+    'language'=>'pt-BR',
+    'timezone' => 'America/Sao_Paulo',
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
@@ -19,6 +22,27 @@ $config = [
         
         ],
     'components' => [
+        'assetManager' => [
+        'bundles' => [
+              'yii\web\JqueryAsset' => [
+                 'jsOptions' => [ 'position' => \yii\web\View::POS_HEAD], //'async' => ''
+                 'js'=>['jquery.min.js']
+             ],
+             // 'yii\web\YiiAsset'=>[
+             //  // 'js'=>['min/yii.js'],
+             //  //'jsOptions'=>['async' => ''],
+             // ],
+             // 'yii\widgets\ActiveFormAsset'=>[
+             //  // 'js'=>['min/yii.activeForm.js'],
+             //  //'jsOptions'=>['async' => ''],
+             // ],
+             // 'yii\validators\ValidationAsset'=>[
+             //  // 'js'=>['min/yii.validation.js'],
+             //  //'jsOptions'=>['async' => ''],
+             // ],
+         ],
+        'appendTimestamp' => true,     
+   ],
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => 'XwvhuSR9zQDRnQ7BCtwpd3p5Qzm937T2',

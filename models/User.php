@@ -2,38 +2,188 @@
 
 namespace app\models;
 
-class User extends \yii\base\Object implements \yii\web\IdentityInterface
+
+/**
+ * Model que gerencia todos os usuários administrativos
+ *
+ * @property integer $id
+ * @property string $senha
+ * @property string $cache_senha
+
+ * @author André Luiz Pereira <andre@next4.com.br>
+ */
+class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 {
-    public $id;
-    public $username;
-    public $password;
-    public $authKey;
-    public $accessToken;
+ 
+  const CRIAR = 'criar';
+  const EDITAR = 'editar';
+  const SEARCH = 'search';
+   public $AuthKey;
+  public $redefinir_senha = '';
+  public $cache_senha;
 
-    private static $users = [
-        '100' => [
-            'id' => '100',
-            'username' => 'admin',
-            'password' => 'admin',
-            'authKey' => 'test100key',
-            'accessToken' => '100-token',
-        ],
-        '101' => [
-            'id' => '101',
-            'username' => 'demo',
-            'password' => 'demo',
-            'authKey' => 'test101key',
-            'accessToken' => '101-token',
-        ],
-    ];
 
+    /**
+     * @inheritdoc
+     */
+    public static function tableName()
+    {
+        return '{{%users}}';
+    }
+
+    /**
+     * Controlo todos so scenarios
+     * @author André Luiz Pereira <andre@next4.com.br>
+     * @return array - retorna os scenarios formatados
+     */
+    public function getCustomScenarios()
+    {
+
+      //[['adm_grupos_id', 'grupos_view', 'nome', 'email', 'senha', 'avatar', 'status_acesso', 'dt_cadastro', 'dt_ult_acesso', 'parametros_extra'], 'required'],
+      return [
+          self::CRIAR      =>  ['usuario','senha','redefinir_senha'],
+          self::EDITAR     =>  ['usuario','senha','redefinir_senha'],
+          self::SEARCH     =>  ['usuario','senha','redefinir_senha']
+      ];
+
+    }
+
+     /**
+     * @inheritdoc
+     */
+    public function scenarios()
+    {
+      $scenarios = $this->getCustomScenarios();
+      return $scenarios;
+    }
+
+
+     /**
+     * Trata campos que não serão validados com requiridos
+     * @author André Luiz Pereira <andre@next4.com.br>
+     * @return array - retorna os scenarios formatados
+     */
+    public function TratarRequired()
+    {
+
+      $allscenarios = $this->getCustomScenarios();
+      //$allscenarios[self::CRIAR] = array_diff($allscenarios[self::CRIAR], ['avatar']);
+      
+      return $allscenarios;
+
+    }
+
+     /**
+     * @inheritdoc
+     */
+    public function rules()
+    {
+        $allscenarios = $this->TratarRequired();
+
+        return [
+            [$allscenarios[self::CRIAR], 'required', 'on' => self::CRIAR],
+            [$allscenarios[self::EDITAR], 'required', 'on' => self::CRIAR],
+            [$allscenarios[self::SEARCH], 'required', 'on' => self::SEARCH],
+            [['usuario'], 'string'],
+            [['senha'], 'string', 'max' => 100],
+            ['senha','string','min'=>8,'message'=>"A senha deve ter no mínimo 8 caracteres"],
+            ['redefinir_senha', 'compare', 'compareAttribute'=>'senha', 'message'=>'O campo redefinir senha de ser identico a senha' ],
+            
+        ];
+    }
+
+
+    /**
+     * @inheritdoc
+     */
+    public function afterValidate()
+    {
+            if($this->scenario == self::CRIAR)
+            {
+                $hash = Yii::$app->getSecurity()->generatePasswordHash($this->senha);
+                $this->senha = $hash;
+            } 
+
+
+            if($this->scenario == self::EDITAR)
+            {
+                if(!empty($this->senha))
+                {
+                    $hash = Yii::$app->getSecurity()->generatePasswordHash($this->senha);
+                    $this->senha = $hash;    
+                }else{
+                    $this->senha = $this->cache_senha;    
+                }
+                
+            } 
+
+
+
+            return parent::afterValidate();  
+    }
+
+     /**
+     * @inheritdoc
+     */
+    public function afterFind()
+    {
+            $this->cache_senha = $this->senha;
+            $this->senha = '';
+
+        return parent::afterFind();
+    }
+
+
+    /**
+     * lista sómente para os usuários em geral
+     * @author André Luiz Pereira <andre@next4.com.br>
+     * @param array $params - GET convertido em array para consulta 
+     * @return yii\data\ActiveDataProvider
+     */
+    public function search($params)
+    {
+
+        $query = self::find();
+
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+        ]);
+
+        if (!($this->load($params) && $this->validate())) {
+            return $dataProvider;
+        }
+
+        $query->andFilterWhere(
+            [
+              'and',
+                ['like','usuario',$this->usuario],
+                
+
+            ]
+                        );
+
+        return $dataProvider;
+    }
+
+    /**
+     * Validates password
+     *
+     * @param  string  $password password to validate
+     * @return boolean if password provided is valid for current user
+     */
+    public function validatePassword($password)
+    {
+        //password = senha do usuário
+        // $this->senha é sempre limpa na consulta, deixo o hash da senha cache_senha
+        return \Yii::$app->getSecurity()->validatePassword($password, $this->cache_senha);
+    }
 
     /**
      * @inheritdoc
      */
     public static function findIdentity($id)
     {
-        return isset(self::$users[$id]) ? new static(self::$users[$id]) : null;
+        return static::findOne($id);
     }
 
     /**
@@ -41,30 +191,19 @@ class User extends \yii\base\Object implements \yii\web\IdentityInterface
      */
     public static function findIdentityByAccessToken($token, $type = null)
     {
-        foreach (self::$users as $user) {
-            if ($user['accessToken'] === $token) {
-                return new static($user);
-            }
-        }
-
-        return null;
+        return static::findOne(['access_token' => $token]);
     }
 
     /**
      * Finds user by username
      *
-     * @param string $username
+     * @param  string      $username
      * @return static|null
      */
     public static function findByUsername($username)
     {
-        foreach (self::$users as $user) {
-            if (strcasecmp($user['username'], $username) === 0) {
-                return new static($user);
-            }
-        }
-
-        return null;
+        return static::find()
+                ->where(['usuario' =>$username])->one();
     }
 
     /**
@@ -72,7 +211,7 @@ class User extends \yii\base\Object implements \yii\web\IdentityInterface
      */
     public function getId()
     {
-        return $this->id;
+        return $this->getPrimaryKey();
     }
 
     /**
@@ -80,7 +219,7 @@ class User extends \yii\base\Object implements \yii\web\IdentityInterface
      */
     public function getAuthKey()
     {
-        return $this->authKey;
+        return $this->AuthKey;
     }
 
     /**
@@ -88,17 +227,7 @@ class User extends \yii\base\Object implements \yii\web\IdentityInterface
      */
     public function validateAuthKey($authKey)
     {
-        return $this->authKey === $authKey;
+       return $this->getAuthKey() === $authKey;
     }
 
-    /**
-     * Validates password
-     *
-     * @param string $password password to validate
-     * @return bool if password provided is valid for current user
-     */
-    public function validatePassword($password)
-    {
-        return $this->password === $password;
-    }
 }
