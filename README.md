@@ -21,6 +21,17 @@ Sistema que contabiliza suas atividades e tempo casto em tarefas de programaçã
 * Select2 https://select2.github.io/examples.html ;
 * eModal  http://saribe.github.io/eModal/ ;
 
+### Recursos, linguagens e frameworks: (com possibilidade de adição de recursos conforme necessidade do projeto) ###
+
+Para instalar o sistema é necessário a utilização do GIT, fazendo um clone na arvore máster no caminho: 
+https://github.com/androidealp/droideTime-sis 
+Neste processo você deve ter um serviço LAMP instalado no seu servidor, atendendo os requisitos mínimos de php > 5.6, MySql 5.6 ou 5.7 ou MariaDB 10.1
+Após isso é necessário instalar o banco que está dentro da pasta [backup] na raiz do repositório,
+Em seguida ir em config> db.php e adicionar suas credenciais de banco
+E para finalizar caso seu ambiente seja é Linux será necessário dar permissões nas pastas runtime, assets e web.
+Se tudo ocorrer bem ao acessar a url conseguirá ver o sistema.
+
+
 
 ### Desenvolvedores ###
 
